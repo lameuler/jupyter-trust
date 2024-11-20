@@ -11,6 +11,11 @@
             "types": "./dist/types/index.d.ts",
             "require": "./dist/cjs/index.js",
             "import": "./dist/esm/index.js"
+        },
+        "./utils": {
+            "types": "./dist/types/utils.d.ts",
+            "require": "./dist/cjs/utils.js",
+            "import": "./dist/esm/utils.js"
         }
     },
     "scripts": {
@@ -42,7 +47,6 @@
         "eslint": "^9.15.0",
         "eslint-config-prettier": "^9.1.0",
         "eslint-plugin-n": "^17.13.2",
-        "glob": "^11.0.0",
         "globals": "^15.12.0",
         "prettier": "^3.3.3",
         "tsup": "^8.3.5",
@@ -61,6 +65,7 @@
         "provenance": true
     },
     "dependencies": {
+        "glob": "^11.0.0",
         "sqlite3": "^5.1.7"
     }
 }
