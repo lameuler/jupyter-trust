@@ -1,26 +1,11 @@
-# `typescript-package`
+# `jupyter-trust`
 
-<!--- (uncomment to use badges)
-[![CI](https://github.com/{USERNAME}/{REPO}/actions/workflows/ci.yml/badge.svg)](https://github.com/{USERNAME}/{REPO}/actions/workflows/ci.yml)
+[![CI](https://github.com/lameuler/jupyter-trust/actions/workflows/ci.yml/badge.svg)](https://github.com/lameuler/jupyter-trust/actions/workflows/ci.yml)
+<!---
 [![npm version](https://img.shields.io/npm/v/{PACKAGE})](https://www.npmjs.com/package/{PACKAGE})
 -->
 
-This is a template repository for creating a typescript package that builds to both CommonJS and ESM.
-
-Click on "[Use this template](https://github.com/new?template_name=typescript-package&template_owner=lameuler)" to get started. Then set the package name in [package.json](./package.json) and run `npm install`.
-
-You can also link the package to the git repository in [package.json](./package.json).
-You should also update the [LICENSE](./LICENSE) file (and the license field in [package.json](./package.json) if you're not using an [MIT License](https://choosealicense.com/licenses/mit/)).
-
-```json
-{
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/{USERNAME}/{REPO}.git"
-    },
-    "license": "MIT"
-}
-```
+A utility for managing Jupyter Notebook trust in Node.js.
 
 ## Code
 
@@ -83,7 +68,3 @@ npx changeset
 ```
 
 Versioning and releasing are handled with [changesets](https://github.com/changesets/changesets).
-
-Before the release workflow can work, you will need to set the repository name in [.changeset/config.json](./.changeset/config.json) and the repository owner in the [release.yml workflow](./.github/workflows/release.yml). You will also need to create an `NPM_AUTH_TOKEN` [repository secret](https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions#creating-secrets-for-a-repository).
-
-When you're ready to publish the package, remove `"private": true` from [package.json](./package.json).

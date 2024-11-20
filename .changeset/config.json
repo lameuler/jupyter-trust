@@ -1,6 +1,6 @@
 {
     "$schema": "https://unpkg.com/@changesets/config@3.0.3/schema.json",
-    "changelog": ["@changesets/changelog-github", { "repo": "lameuler/typescript-package" }],
+    "changelog": ["@changesets/changelog-github", { "repo": "lameuler/jupyter-trust" }],
     "commit": false,
     "access": "public",
     "baseBranch": "main"
