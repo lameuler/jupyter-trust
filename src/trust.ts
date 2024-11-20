@@ -70,7 +70,10 @@ export class JupyterTrust {
         return await this.store.store(signature, this.algorithm)
     }
     static async sign(notebook: string | object): Promise<boolean> {
-        return (await JupyterTrust.create()).sign(notebook)
+        const instance = await JupyterTrust.create()
+        const result = await instance.sign(notebook)
+        instance.close()
+        return result
     }
 
     async unsign(notebook: string | object): Promise<boolean> {
@@ -82,7 +85,10 @@ export class JupyterTrust {
         return await this.store.remove(signature, this.algorithm)
     }
     static async unsign(notebook: string | object): Promise<boolean> {
-        return (await JupyterTrust.create()).unsign(notebook)
+        const instance = await JupyterTrust.create()
+        const result = await instance.unsign(notebook)
+        instance.close()
+        return result
     }
 
     async glob(pattern: string | string[], options?: GlobOptions): Promise<string[]> {
@@ -101,7 +107,10 @@ export class JupyterTrust {
         return results
     }
     static async glob(pattern: string | string[], options?: GlobOptions): Promise<string[]> {
-        return (await JupyterTrust.create()).glob(pattern, options)
+        const instance = await JupyterTrust.create()
+        const result = await instance.glob(pattern, options)
+        instance.close()
+        return result
     }
 }
 
