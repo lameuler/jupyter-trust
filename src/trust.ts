@@ -2,8 +2,6 @@ import { createHmac } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 
-import { glob, GlobOptions } from 'glob'
-
 import { SignatureStore, SignatureStoreOptions } from './store.js'
 import { defaultDataDir, defaultSecret, omitSignature, serialize } from './utils.js'
 
@@ -12,7 +10,12 @@ export class JupyterTrust {
     readonly algorithm: string
     readonly secret: string
 
-    constructor(database: string, secret: string, algorithm = 'sha256', options?: SignatureStoreOptions) {
+    constructor(
+        database: string,
+        secret: string,
+        algorithm = 'sha256',
+        options?: SignatureStoreOptions,
+    ) {
         this.store = new SignatureStore(database, options)
         this.secret = secret
         this.algorithm = algorithm
@@ -91,28 +94,36 @@ export class JupyterTrust {
         return result
     }
 
-    async glob(pattern: string | string[], options?: GlobOptions): Promise<string[]> {
-        const paths = await glob(pattern, options ?? {})
-        const strPaths = paths.map((path) => (typeof path === 'string' ? path : path.fullpath()))
-        const results: string[] = []
+    async #filter<T>(objs: T[], accessor?: FilterAccessor<T>): Promise<T[]> {
+        const result: T[] = []
         await Promise.all(
-            strPaths.map((path) =>
-                this.check(path).then((trusted) => {
-                    if (trusted) {
-                        results.push(path)
+            objs.map(async (obj) => {
+                const notebook = typeof accessor === 'function' ? await accessor(obj) : obj
+                if (notebook && (typeof notebook === 'string' || typeof notebook === 'object')) {
+                    if (await this.check(notebook)) {
+                        result.push(obj)
                     }
-                }),
-            ),
+                }
+            }),
         )
-        return results
+        return result
     }
-    static async glob(pattern: string | string[], options?: GlobOptions): Promise<string[]> {
+    async filter<T extends string | object>(notebooks: T[]): Promise<T[]>
+    async filter<T>(objs: T[], accessor: FilterAccessor<T>): Promise<T[]>
+    async filter<T>(objs: T[], accessor?: FilterAccessor<T>): Promise<T[]> {
+        return this.#filter(objs, accessor)
+    }
+    static async filter<T extends string | object>(notebooks: T[]): Promise<T[]>
+    static async filter<T>(objs: T[], accessor: FilterAccessor<T>): Promise<T[]>
+    static async filter<T>(objs: T[], accessor?: FilterAccessor<T>): Promise<T[]> {
         const instance = await JupyterTrust.create()
-        const result = await instance.glob(pattern, options)
+        const result = instance.#filter(objs, accessor)
         instance.close()
         return result
     }
 }
+
+export type FilterAccessor<T> = (obj: T) => string | object | Promise<string | object>
 
 async function getNotebook(nb: string | object) {
     if (typeof nb === 'string') {
