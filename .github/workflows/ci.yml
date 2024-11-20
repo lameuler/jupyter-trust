@@ -1,0 +1,85 @@
+name: CI
+
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+    workflow_dispatch:
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+env:
+    node-version: 20
+
+jobs:
+    lint:
+        name: 'Lint'
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup node@${{ env.node-version }}
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.node-version }}
+                  cache: 'npm'
+
+            - name: Install Dependencies
+              run: npm install
+
+            - name: Lint
+              run: npm run lint
+
+    format:
+        name: 'Check format'
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup node@${{ env.node-version }}
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.node-version }}
+                  cache: 'npm'
+
+            - name: Install Dependencies
+              run: npm install
+
+            - name: Check Format
+              run: npm run format:check
+
+    test:
+        name: 'Test: ${{ matrix.os }} (node@${{ matrix.node-version }})'
+        runs-on: ${{ matrix.os }}
+        strategy:
+            matrix:
+                os: [ubuntu-latest, windows-latest, macos-latest]
+                node-version: [20]
+                include:
+                    - os: ubuntu-latest
+                      node-version: 18
+                    - os: ubuntu-latest
+                      node-version: 22
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup node@${{ matrix.node-version }}
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: 'npm'
+
+            - name: Install Dependencies
+              run: npm install
+
+            - name: Build Package
+              run: npm run build
+
+            - name: Run tests
+              run: npm test

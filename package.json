@@ -1,0 +1,59 @@
+{
+    "name": "typescript-package",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "files": [
+        "dist"
+    ],
+    "exports": {
+        ".": {
+            "types": "./dist/types/index.d.ts",
+            "require": "./dist/cjs/index.js",
+            "import": "./dist/esm/index.js"
+        }
+    },
+    "scripts": {
+        "build": "tsup --clean && tsc",
+        "build:watch": "tsup --watch",
+        "lint": "eslint",
+        "format": "prettier . --write",
+        "format:check": "prettier . --check",
+        "version": "changeset version && npm install --lockfile-only",
+        "prepack": "npm run build && npm test",
+        "test": "tsc -p test && vitest run",
+        "coverage": "vitest run --coverage"
+    },
+    "author": "",
+    "license": "MIT",
+    "description": "",
+    "devDependencies": {
+        "@changesets/changelog-github": "^0.5.0",
+        "@changesets/cli": "^2.27.9",
+        "@eslint/js": "^9.15.0",
+        "@trivago/prettier-plugin-sort-imports": "^4.3.0",
+        "@types/eslint-config-prettier": "^6.11.3",
+        "@types/node": "^22.9.1",
+        "esbuild": "^0.24.0",
+        "eslint": "^9.15.0",
+        "eslint-config-prettier": "^9.1.0",
+        "eslint-plugin-n": "^17.13.2",
+        "glob": "^11.0.0",
+        "globals": "^15.12.0",
+        "prettier": "^3.3.3",
+        "tsup": "^8.3.5",
+        "typescript": "^5.6.3",
+        "typescript-eslint": "^8.15.0",
+        "vitest": "^2.1.5"
+    },
+    "workspaces": [
+        ".",
+        "test/fixtures/**"
+    ],
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "publishConfig": {
+        "provenance": true
+    }
+}
