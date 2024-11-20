@@ -12,7 +12,6 @@ export default defineConfig({
         return { js: '.js' }
     },
     platform: 'node',
-    clean: true,
     esbuildPlugins: [plugin()],
 })
 

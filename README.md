@@ -1,6 +1,7 @@
 # `jupyter-trust`
 
 [![CI](https://github.com/lameuler/jupyter-trust/actions/workflows/ci.yml/badge.svg)](https://github.com/lameuler/jupyter-trust/actions/workflows/ci.yml)
+
 <!---
 [![npm version](https://img.shields.io/npm/v/{PACKAGE})](https://www.npmjs.com/package/{PACKAGE})
 -->
