@@ -27,8 +27,7 @@
         "version": "changeset version && npm install --lockfile-only",
         "prepack": "npm run build && npm test",
         "test": "tsc -p test && vitest run",
-        "coverage": "vitest run --coverage",
-        "postinstall": "python3 -m pip install nbformat"
+        "coverage": "vitest run --coverage"
     },
     "author": "",
     "license": "MIT",

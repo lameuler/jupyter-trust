@@ -78,6 +78,15 @@ jobs:
             - name: Install Dependencies
               run: npm install
 
+            - name: Setup python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: '3.13'
+                  cache: pip
+
+            - name: Install Python Dependencies
+              run: pip install -r requirements.txt
+
             - name: Build Package
               run: npm run build
 
