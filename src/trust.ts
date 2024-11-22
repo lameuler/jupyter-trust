@@ -5,6 +5,13 @@ import { resolve } from 'node:path'
 import { SignatureStore, SignatureStoreOptions } from './store.js'
 import { defaultDataDir, defaultSecret, omitSignature, serialize } from './utils.js'
 
+export interface JupyterTrustOptions extends SignatureStoreOptions {
+    dataDir?: string
+    database?: string
+    secret?: string
+    algorithm?: string
+}
+
 export class JupyterTrust {
     readonly store: SignatureStore
     readonly algorithm: string
@@ -21,24 +28,25 @@ export class JupyterTrust {
         this.algorithm = algorithm
     }
 
-    static async create(dataDir?: string, algorithm?: string): Promise<JupyterTrust> {
+    static async create(options: JupyterTrustOptions = {}): Promise<JupyterTrust> {
+        const { dataDir, database, secret, algorithm, ...rest } = options
         const dir = dataDir ?? defaultDataDir()
-        const database = resolve(dir, 'nbsignatures.db')
-        const secret = await defaultSecret(dataDir)
-        return new JupyterTrust(database, secret, algorithm)
+        const _database = database ?? resolve(dir, 'nbsignatures.db')
+        const _secret = secret ?? await defaultSecret(dir)
+        return new JupyterTrust(_database, _secret, algorithm, rest)
     }
 
     async close() {
         await this.store.close()
     }
 
-    static digest(nb: unknown, secret?: undefined, algorithm?: string): Promise<string>
-    static digest(nb: unknown, secret: string, algorithm?: string): string
-    static digest(nb: unknown, secret?: string, algorithm = 'sha256'): string | Promise<string> {
-        if (secret === undefined) {
-            return defaultSecret().then((s) => JupyterTrust.digest(nb, s, algorithm))
+    static digest(nb: unknown, options?: JupyterTrustOptions & { secret: undefined }): Promise<string>
+    static digest(nb: unknown, options?: JupyterTrustOptions & { secret: string }): string
+    static digest(nb: unknown, options?: JupyterTrustOptions): string | Promise<string> {
+        if (options?.secret === undefined) {
+            return defaultSecret(options?.dataDir).then((secret) => JupyterTrust.digest(nb, { ...options, secret }))
         }
-        const hmac = createHmac(algorithm, secret)
+        const hmac = createHmac(options.algorithm ?? 'sha256', options.secret)
         // TODO check if nbformat only removes notebook signature and not from cells
         for (const data of serialize(omitSignature(nb))) {
             hmac.update(data)
@@ -46,7 +54,7 @@ export class JupyterTrust {
         return hmac.digest('hex')
     }
     digest(nb: unknown): string {
-        return JupyterTrust.digest(nb, this.secret, this.algorithm)
+        return JupyterTrust.digest(nb, { secret: this.secret, algorithm: this.algorithm })
     }
 
     async check(notebook: string | object): Promise<boolean> {
@@ -57,8 +65,8 @@ export class JupyterTrust {
         const signature = this.digest(notebook)
         return await this.store.check(signature, this.algorithm)
     }
-    static async check(notebook: string | object): Promise<boolean> {
-        const instance = await JupyterTrust.create()
+    static async check(notebook: string | object, options?: JupyterTrustOptions): Promise<boolean> {
+        const instance = await JupyterTrust.create(options)
         const result = await instance.check(notebook)
         instance.close()
         return result
@@ -72,8 +80,8 @@ export class JupyterTrust {
         const signature = this.digest(nb)
         return await this.store.store(signature, this.algorithm)
     }
-    static async sign(notebook: string | object): Promise<boolean> {
-        const instance = await JupyterTrust.create()
+    static async sign(notebook: string | object, options?: JupyterTrustOptions): Promise<boolean> {
+        const instance = await JupyterTrust.create(options)
         const result = await instance.sign(notebook)
         instance.close()
         return result
@@ -87,8 +95,8 @@ export class JupyterTrust {
         const signature = this.digest(nb)
         return await this.store.remove(signature, this.algorithm)
     }
-    static async unsign(notebook: string | object): Promise<boolean> {
-        const instance = await JupyterTrust.create()
+    static async unsign(notebook: string | object, options?: JupyterTrustOptions): Promise<boolean> {
+        const instance = await JupyterTrust.create(options)
         const result = await instance.unsign(notebook)
         instance.close()
         return result
@@ -113,10 +121,12 @@ export class JupyterTrust {
     async filter<T>(objs: T[], accessor?: FilterAccessor<T>): Promise<T[]> {
         return this.#filter(objs, accessor)
     }
-    static async filter<T extends string | object>(notebooks: T[]): Promise<T[]>
-    static async filter<T>(objs: T[], accessor: FilterAccessor<T>): Promise<T[]>
-    static async filter<T>(objs: T[], accessor?: FilterAccessor<T>): Promise<T[]> {
-        const instance = await JupyterTrust.create()
+    static async filter<T extends string | object>(notebooks: T[], options?: JupyterTrustOptions): Promise<T[]>
+    static async filter<T>(objs: T[], accessor: FilterAccessor<T>, options?: JupyterTrustOptions): Promise<T[]>
+    static async filter<T>(objs: T[], p2?: FilterAccessor<T> | JupyterTrustOptions, p3?: JupyterTrustOptions): Promise<T[]> {
+        const options = typeof p2 === 'function' ? p3 : p2
+        const accessor = typeof p2 === 'function' ? p2 : undefined
+        const instance = await JupyterTrust.create(options)
         const result = instance.#filter(objs, accessor)
         instance.close()
         return result
