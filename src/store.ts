@@ -28,7 +28,7 @@ export class SignatureStore {
 
     constructor(filename: string, options?: SignatureStoreOptions) {
         this.options = {
-            readonly: true,
+            readonly: false,
             create: false,
             cull: false,
             cacheSize: 65535,

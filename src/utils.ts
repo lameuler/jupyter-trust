@@ -114,7 +114,7 @@ export function omitSignature(obj: unknown) {
 
 export async function generateSecret(): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-        generateKey('hmac', { length: 1024*8 }, (err, key) => {
+        generateKey('hmac', { length: 1024 * 8 }, (err, key) => {
             if (err) {
                 reject(err)
             } else {
