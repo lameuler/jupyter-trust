@@ -1,4 +1,4 @@
-import { randomBytes } from 'node:crypto'
+import { generateKey } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { resolve } from 'node:path'
@@ -112,8 +112,16 @@ export function omitSignature(obj: unknown) {
     return obj
 }
 
-export function generateSecret() {
-    return randomBytes(1024).toString('base64')
+export async function generateSecret(): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+        generateKey('hmac', { length: 1024*8 }, (err, key) => {
+            if (err) {
+                reject(err)
+            } else {
+                resolve(key.export().toString('base64'))
+            }
+        })
+    })
 }
 
 let secret: string | undefined = undefined

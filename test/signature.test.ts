@@ -11,7 +11,7 @@ import { python } from './utils/python.js'
 describe('compute signatures', () => {
     const dir = 'test/.tmp/signatures/'
     const result: Record<string, string> = {}
-    const secret = generateSecret()
+    let secret: string
 
     beforeAll(async () => {
         await rm(dir, { recursive: true, force: true })
@@ -29,6 +29,7 @@ describe('compute signatures', () => {
         })
         await writeFile(dir + 'test-0.json', test0)
 
+        secret = await generateSecret()
         await writeFile(dir + 'notebook_secret', secret)
     })
 
