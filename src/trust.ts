@@ -40,22 +40,21 @@ export class JupyterTrust {
         await this.store.close()
     }
 
-    static digest(nb: unknown, opts?: JupyterTrustOptions & { secret: undefined }): Promise<string>
-    static digest(nb: unknown, opts?: JupyterTrustOptions & { secret: string }): string
-    static digest(nb: unknown, opts?: JupyterTrustOptions): string | Promise<string> {
+    static digest(nb: object, opts?: JupyterTrustOptions & { secret: undefined }): Promise<string>
+    static digest(nb: object, opts?: JupyterTrustOptions & { secret: string }): string
+    static digest(nb: object, opts?: JupyterTrustOptions): string | Promise<string> {
         if (opts?.secret === undefined) {
             return defaultSecret(opts?.dataDir).then((secret) =>
                 JupyterTrust.digest(nb, { ...opts, secret }),
             )
         }
         const hmac = createHmac(opts.algorithm ?? 'sha256', opts.secret)
-        // TODO check if nbformat only removes notebook signature and not from cells
         for (const data of serialize(omitSignature(nb))) {
             hmac.update(data)
         }
         return hmac.digest('hex')
     }
-    digest(nb: unknown): string {
+    digest(nb: object): string {
         return JupyterTrust.digest(nb, { secret: this.secret, algorithm: this.algorithm })
     }
 
@@ -64,7 +63,7 @@ export class JupyterTrust {
         if (nb === null) {
             return false
         }
-        const signature = this.digest(notebook)
+        const signature = this.digest(nb)
         return await this.store.check(signature, this.algorithm)
     }
     static async check(notebook: string | object, opts?: JupyterTrustOptions): Promise<boolean> {
