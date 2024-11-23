@@ -22,11 +22,11 @@ signatures = {}
 
 for path in dir.iterdir():
     if path.name.startswith('test-') and path.suffix == '.json':
-        with path.open() as file:
+        with path.open(encoding='utf-8') as file:
             try:
                 nb = json.load(file)
                 if args.everything:
-                    with open(str(path)+'.txt', 'w') as out:
+                    with open(str(path)+'.txt', 'w', encoding='utf-8') as out:
                         for data in yield_everything(nb):
                             out.write(data.decode()+'\n')
                 signatures[path.name] = notary.compute_signature(nb)
@@ -35,5 +35,5 @@ for path in dir.iterdir():
                 raise
                 
 
-with (dir / 'results.json').open('w') as file:
+with (dir / 'results.json').open('w', encoding='utf-8') as file:
     json.dump(signatures, file)
