@@ -3,6 +3,22 @@ import { readFile } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { resolve } from 'node:path'
 
+// ponyfill for https://github.com/tc39/proposal-json-parse-with-source
+// to make it much easier to parse and store bigints in json
+import * as JSON from '@ungap/raw-json'
+
+export function parse(text: string) {
+    return JSON.parse(text, (key, value, context) => {
+        // treat all integers as bigint, all other numbers as float
+        // this is to match python's handling of int and float
+        if (typeof value === 'number' && context.source && /^-?\d+$/.test(context.source)) {
+            return BigInt(context.source)
+        } else {
+            return value
+        }
+    })
+}
+
 // this needs to exactly match the behaviour of yield_everything in nbformat.sign
 export function* serialize(obj: unknown): Generator<string> {
     if (typeof obj === 'string') {
@@ -35,8 +51,15 @@ export function* serialize(obj: unknown): Generator<string> {
             if (/e[+-]\d$/.test(str)) {
                 // zero pad the exponent if it is only 1 digit
                 yield sign + str.slice(0, -1) + '0' + str.slice(-1)
-            } else if (str.includes('e') || !str.includes('.')) {
+            } else if (str.includes('e')) {
                 yield sign + str
+            } else if (!str.includes('.')) {
+                // python uses scientific notation for numbers from 1e16 and larger
+                const match = str.match(/^[1-9]([1-9]*)0*$/)
+                if (match) {
+                    const d = match[1] ? '.' + match[1] : ''
+                    yield sign + str.slice(0, 1) + d + 'e+' + (str.length - 1)
+                }
             } else if (str.startsWith('0.')) {
                 // python uses scientific notation for numbers smaller than 1e-4
                 // while javascript only does for numbers smaller than 1e-6
@@ -50,6 +73,8 @@ export function* serialize(obj: unknown): Generator<string> {
                     yield '0.0'
                 }
             } else {
+                // large number with decimal places not in scientific notation
+                // eg 1234567890123456.12345 but float should not have the precision for this
                 // this case shouldn't be possible
                 // a sufficiently large number will either already be in scientific notation
                 // or not have any decimal places
@@ -58,11 +83,21 @@ export function* serialize(obj: unknown): Generator<string> {
                 yield sign + str.slice(0, 1) + '.' + str.slice(1, i) + str.slice(i + 1) + e
             }
         } else {
-            yield obj.toString()
+            // treat all numbers as float
+            const str = obj.toString()
+            if (str.includes('.')) {
+                yield str
+            } else {
+                yield str + '.0'
+            }
         }
-    } else if (obj !== undefined) {
-        yield String(obj)
+    } else if (typeof obj === 'bigint') {
+        // use bigint to represent python ints
+        yield obj.toString()
     }
+    // ignore function, symbol, and undefined types as they are not json-able
+    // and have no meaningful equivalent string representation to python.
+    // while yield_everything in python does stringify functions, it is not deterministic
 }
 
 function compareString(s1: string, s2: string) {
@@ -103,6 +138,7 @@ export function omitSignature(obj: unknown) {
         if (metadata && 'signature' in metadata) {
             const { signature, ...meta } = metadata
             void signature
+            // create a copy of the original object
             return {
                 metadata: meta,
                 ...rest,

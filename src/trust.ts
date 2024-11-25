@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 
 import { SignatureStore, SignatureStoreOptions } from './store.js'
-import { defaultDataDir, defaultSecret, omitSignature, serialize } from './utils.js'
+import { defaultDataDir, defaultSecret, omitSignature, parse, serialize } from './utils.js'
 
 export interface JupyterTrustOptions extends SignatureStoreOptions {
     dataDir?: string
@@ -149,7 +149,7 @@ export type FilterAccessor<T> = (obj: T) => string | object | Promise<string | o
 
 async function getNotebook(nb: string | object) {
     if (typeof nb === 'string') {
-        nb = JSON.parse(await readFile(nb, 'utf8'))
+        nb = parse(await readFile(nb, 'utf8'))
     }
     if (!nb || typeof nb !== 'object') {
         return null

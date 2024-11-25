@@ -3,7 +3,7 @@ import { describe, test, expect, beforeAll, afterAll } from 'vitest'
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 
 import { digest } from 'jupyter-trust'
-import { generateSecret } from 'jupyter-trust/utils'
+import { generateSecret, parse } from 'jupyter-trust/utils'
 
 import { generate } from './utils/generate.js'
 import { python } from './utils/python.js'
@@ -18,15 +18,22 @@ describe('compute signatures', () => {
         await mkdir(dir, { recursive: true })
 
         await generate(20, dir)
-        const test0 = JSON.stringify({
-            '\ud83d\ude0dA': true,
-            0: Math.sqrt(2) * 10 ** 16 + Math.sqrt(2),
-            [-1]: -1234e16,
-            '\ud800\udfffB': null,
-            '': [],
-            metadata: { [-2.5e-7]: -2.5e-6 },
-            '\uffffC': 0.3 - 0.2,
-        })
+        const test0 = `{
+            "\\ud83d\\ude0dA": true,
+            "0": 9.876543210987654321e10,
+            "-1": -12345678901234567890123456789,
+            "\\u0000": -12345678901234567890123456789.0,
+            "\\ud800\\udfffB": null,
+            "": [],
+            "metadata": {
+                "": -2.5e-6,
+                "\\"": 1e16,
+                "'": 1e15,
+                "\\\\": 1e5,
+                "\\\\\\\\": 10000
+            },
+            "\\uffffC": ${0.3 - 0.2}
+        }`
         await writeFile(dir + 'test-0.json', test0)
 
         secret = await generateSecret()
@@ -59,7 +66,7 @@ describe('compute signatures', () => {
     test('all signatures match', async () => {
         for (const name in result) {
             const file = await readFile(dir + name, 'utf8')
-            const nb = JSON.parse(file)
+            const nb = parse(file)
             const signature = digest(nb, { secret })
             expect(name + ': ' + signature).toBe(name + ': ' + result[name])
         }
