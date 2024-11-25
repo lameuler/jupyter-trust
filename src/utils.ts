@@ -1,22 +1,52 @@
-import { generateKey } from 'node:crypto'
+import { generateKey, randomBytes } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { resolve } from 'node:path'
 
-// ponyfill for https://github.com/tc39/proposal-json-parse-with-source
-// to make it much easier to parse and store bigints in json
-import * as JSON from '@ungap/raw-json'
-
 export function parse(text: string) {
-    return JSON.parse(text, (key, value, context) => {
-        // treat all integers as bigint, all other numbers as float
-        // this is to match python's handling of int and float
-        if (typeof value === 'number' && context.source && /^-?\d+$/.test(context.source)) {
-            return BigInt(context.source)
-        } else {
-            return value
+    const { before, reviver } = makeReviver()
+    return JSON.parse(before(text), reviver)
+}
+
+function makeReviver() {
+    if ('rawJSON' in JSON && typeof JSON.rawJSON === 'function') {
+        return {
+            before(text: string) {
+                return text
+            },
+            reviver(key: string, value: unknown, context?: { source?: string }) {
+                // treat all integers as bigint, all other numbers as float
+                // this is to match python's handling of int and float
+                if (typeof value === 'number' && typeof context?.source === 'string') {
+                    if (/-?\d+/.test(context.source)) {
+                        return BigInt(value)
+                    }
+                }
+                return value
+            },
         }
-    })
+    } else {
+        const randKey = randomBytes(12).toString('base64url')
+        return {
+            before(text: string) {
+                // match string and number together so that numbers in strings are already part of string match
+                return text.replace(/"(?:[^\\"]|\\[\\"/bfnrtu])*"|-?\d+[\deE.+-]*/g, (match) =>
+                    // only care about integers, to turn to bigint later
+                    /^-?\d+$/.test(match) ? `"<int <${match.trim()}> #${randKey}>"` : match,
+                )
+            },
+            reviver(key: string, value: unknown) {
+                if (typeof value === 'string') {
+                    const regex = new RegExp(`^<int <(-?\\d+)> #${randKey}>$`)
+                    const match = regex.exec(value)
+                    if (match) {
+                        return BigInt(match[1])
+                    }
+                }
+                return value
+            },
+        }
+    }
 }
 
 // this needs to exactly match the behaviour of yield_everything in nbformat.sign

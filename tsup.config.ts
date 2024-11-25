@@ -6,14 +6,13 @@ import { defineConfig } from 'tsup'
 
 export default defineConfig({
     entry: await glob(['src/**/*.ts'], { ignore: ['**/*.d.ts'], posix: true }),
-    bundle: true,
+    bundle: false,
     format: ['esm', 'cjs'],
     outExtension() {
         return { js: '.js' }
     },
     platform: 'node',
     esbuildPlugins: [plugin()],
-    noExternal: ['@ungap/raw-json'],
 })
 
 const types: Partial<Record<Format | 'none', 'module' | 'commonjs'>> = {
