@@ -2,8 +2,6 @@ import { randomBytes, randomInt } from 'node:crypto'
 import { writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 
-import * as JSON from '@ungap/raw-json'
-
 const DEPTH = 12
 const LIMIT = 256
 
@@ -65,17 +63,43 @@ export async function generate(n = 10, dir = 'test/.cache/signatures') {
         const obj = randomObject()
         obj.nbformat = 4
         obj.nbformat_minor = randomInt(6)
-        promises.push(
-            writeFile(resolve(dir, `test-random${i}.json`), JSON.stringify(obj, replacer, 4)),
-        )
+        const { replacer, after } = makeReplacer()
+        const content = after(JSON.stringify(obj, replacer, 4))
+        promises.push(writeFile(resolve(dir, `test-random${i}.json`), content))
     }
     await Promise.all(promises)
 }
 
-function replacer(key: string, value: unknown) {
-    if (typeof value === 'bigint') {
-        return JSON.rawJSON(value.toString())
+function makeReplacer() {
+    const rawJSON = 'rawJSON' in JSON ? JSON.rawJSON : undefined
+    if (typeof rawJSON === 'function') {
+        return {
+            replacer(key: string, value: unknown) {
+                if (typeof value === 'bigint') {
+                    return rawJSON(value.toString())
+                } else {
+                    return value
+                }
+            },
+            after(s: string) {
+                return s
+            },
+        }
     } else {
-        return value
+        const randKey = randomBytes(12).toString('base64url')
+        return {
+            replacer(key: string, value: unknown) {
+                if (typeof value === 'bigint') {
+                    return `<int <${value.toString()}> #${randKey}>`
+                } else {
+                    return value
+                }
+            },
+            after(s: string) {
+                const regex = new RegExp(`"<int <(-?\\d+)> #${randKey}>"`, 'g')
+                s.replace(regex, (match, group) => group)
+                return s
+            },
+        }
     }
 }
