@@ -18,8 +18,8 @@ function makeReviver() {
                 // treat all integers as bigint, all other numbers as float
                 // this is to match python's handling of int and float
                 if (typeof value === 'number' && typeof context?.source === 'string') {
-                    if (/-?\d+/.test(context.source)) {
-                        return BigInt(value)
+                    if (/^-?\d+$/.test(context.source)) {
+                        return BigInt(context.source)
                     }
                 }
                 return value
