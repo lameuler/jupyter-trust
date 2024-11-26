@@ -3,7 +3,16 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 
 import { glob } from 'glob'
-import { JupyterTrust, SignatureStore, check, create, digest, filter, sign, unsign } from 'jupyter-trust'
+import {
+    JupyterTrust,
+    SignatureStore,
+    check,
+    create,
+    digest,
+    filter,
+    sign,
+    unsign,
+} from 'jupyter-trust'
 import { generateSecret, parse } from 'jupyter-trust/utils'
 
 import { python } from './utils/python.js'
@@ -61,8 +70,9 @@ describe('trust', () => {
             'sample-5.ipynb',
             'sample-7.ipynb',
         ])
+        await trust.close()
     })
-    it ('can unsign notebook files', async () => {
+    it('can unsign notebook files', async () => {
         const database = dir + 'unsign.db'
         const created = await create({ database, secret, create: true })
         await created.sign(samples + 'sample-0.ipynb')
@@ -81,6 +91,7 @@ describe('trust', () => {
 
         expect(await created.unsign(samples + 'sample-0.ipynb')).toBe(true)
         expect(await check(samples + 'sample-0.ipynb', { database, secret })).toBe(false)
+        await created.close()
     })
     it('creates database in static methods', async () => {
         const database = dir + 'create.db'
