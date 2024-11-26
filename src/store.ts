@@ -30,7 +30,7 @@ export class SignatureStore {
         this.options = {
             readonly: false,
             create: false,
-            cull: false,
+            cull: true,
             cacheSize: 65535,
             ...options,
         }
@@ -167,7 +167,7 @@ export class SignatureStore {
                 )
             })
         }
-        if ((await this.count()) > this.options.cacheSize) {
+        if (this.options.cull && (await this.count()) > this.options.cacheSize) {
             await this.cull()
         }
         return stored
