@@ -12,6 +12,7 @@ export default defineConfig({
         return { js: '.js' }
     },
     platform: 'node',
+    sourcemap: true,
     esbuildPlugins: [plugin()],
 })
 

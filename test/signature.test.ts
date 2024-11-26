@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { copyFile, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises'
 
 import { digest } from 'jupyter-trust'
 import { generateSecret, parse } from 'jupyter-trust/utils'
@@ -16,6 +16,13 @@ describe('compute signatures', () => {
     beforeAll(async () => {
         await rm(dir, { recursive: true, force: true })
         await mkdir(dir, { recursive: true })
+
+        const samples = await readdir('test/samples/')
+        for (const file of samples) {
+            if (file.endsWith('.ipynb')) {
+                await copyFile('test/samples/' + file, dir + 'test-' + file)
+            }
+        }
 
         await generate(20, dir)
         const test0 = `{
@@ -55,10 +62,10 @@ describe('compute signatures', () => {
 
     it('has valid results to check', () => {
         const keys = Object.keys(result)
-        expect(keys.length).toBe(21)
+        expect(keys.length).toBe(29)
         for (const key of keys) {
             expect(key.startsWith('test-')).toBe(true)
-            expect(key.endsWith('.json')).toBe(true)
+            expect(key.endsWith('.json') || key.endsWith('.ipynb')).toBe(true)
             expect(result[key]).toMatch(/^[0-9a-f]{64}$/)
         }
     })

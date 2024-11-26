@@ -40,7 +40,7 @@ export class JupyterTrust {
         await this.store.close()
     }
 
-    static digest(nb: object, opts?: JupyterTrustOptions & { secret: undefined }): Promise<string>
+    static digest(nb: object, opts?: JupyterTrustOptions & { secret?: undefined }): Promise<string>
     static digest(nb: object, opts?: JupyterTrustOptions & { secret: string }): string
     static digest(nb: object, opts?: JupyterTrustOptions): string | Promise<string> {
         if (opts?.secret === undefined) {
@@ -139,7 +139,7 @@ export class JupyterTrust {
         const opts = typeof p2 === 'function' ? p3 : p2
         const accessor = typeof p2 === 'function' ? p2 : undefined
         const instance = await JupyterTrust.create(opts)
-        const result = instance.#filter(objs, accessor)
+        const result = await instance.#filter(objs, accessor)
         instance.close()
         return result
     }
@@ -154,7 +154,7 @@ async function getNotebook(nb: string | object) {
     if (!nb || typeof nb !== 'object') {
         return null
     }
-    if ('nbformat' in nb && typeof nb.nbformat === 'number') {
+    if ('nbformat' in nb && (typeof nb.nbformat === 'number' || typeof nb.nbformat === 'bigint')) {
         if (nb.nbformat >= 3) {
             return nb
         }

@@ -4,7 +4,8 @@
     "version": "0.0.0",
     "type": "module",
     "files": [
-        "dist"
+        "dist",
+        "!dist/**/*.map"
     ],
     "exports": {
         ".": {
@@ -44,6 +45,7 @@
         "@types/cross-spawn": "^6.0.6",
         "@types/eslint-config-prettier": "^6.11.3",
         "@types/node": "^22.9.1",
+        "@vitest/coverage-istanbul": "^2.1.5",
         "cross-spawn": "^7.0.6",
         "esbuild": "^0.24.0",
         "eslint": "^9.15.0",

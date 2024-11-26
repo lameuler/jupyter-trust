@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 from nbformat.sign import NotebookNotary, yield_everything
 
 parser = ArgumentParser()
-parser.add_argument('dir', default='test/.cache/signatures', nargs='?')
+parser.add_argument('dir', default='test/.tmp/signatures', nargs='?')
 parser.add_argument('-e', '--everything', action='store_true', help='save the output of yield_everything to file')
 
 args = parser.parse_args()
@@ -21,7 +21,7 @@ notary = NotebookNotary(data_dir=str(dir), db_file=':memory:')
 signatures = {}
 
 for path in dir.iterdir():
-    if path.name.startswith('test-') and path.suffix == '.json':
+    if path.name.startswith('test-') and (path.suffix == '.json' or path.suffix == '.ipynb'):
         with path.open(encoding='utf-8') as file:
             try:
                 nb = json.load(file)
