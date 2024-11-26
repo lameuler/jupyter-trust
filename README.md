@@ -11,6 +11,7 @@ A utility for managing Jupyter Notebook trust in Node.js.
 This package is available as both a CommonJS and ESM module.
 
 ## Basic Example
+
 ```ts
 import { JupyterTrust, create, check, sign, unsign } from 'jupyter-trust'
 
