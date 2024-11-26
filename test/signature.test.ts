@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeAll, afterAll } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 
@@ -53,7 +53,7 @@ describe('compute signatures', () => {
         }
     })
 
-    test('has valid results to check', () => {
+    it('has valid results to check', () => {
         const keys = Object.keys(result)
         expect(keys.length).toBe(21)
         for (const key of keys) {
@@ -63,7 +63,7 @@ describe('compute signatures', () => {
         }
     })
 
-    test('all signatures match', async () => {
+    it('generates matching signatures for all files', async () => {
         for (const name in result) {
             const file = await readFile(dir + name, 'utf8')
             const nb = parse(file)
@@ -73,6 +73,6 @@ describe('compute signatures', () => {
     })
 
     afterAll(async () => {
-        rm(dir, { recursive: true, force: true })
+        await rm(dir, { recursive: true, force: true })
     })
 })
