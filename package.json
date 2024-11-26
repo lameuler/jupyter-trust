@@ -1,7 +1,6 @@
 {
     "name": "jupyter-trust",
-    "private": true,
-    "version": "0.0.0",
+    "version": "1.0.0",
     "type": "module",
     "files": [
         "dist",
@@ -30,9 +29,9 @@
         "test": "tsc -p test && vitest run",
         "coverage": "vitest run --coverage"
     },
-    "author": "",
+    "author": "Lam Eu Ler",
     "license": "MIT",
-    "description": "",
+    "description": "A utility for managing Jupyter Notebook trust in Node.js",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/lameuler/jupyter-trust.git"

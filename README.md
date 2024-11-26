@@ -1,10 +1,7 @@
 # `jupyter-trust`
 
 [![CI](https://github.com/lameuler/jupyter-trust/actions/workflows/ci.yml/badge.svg)](https://github.com/lameuler/jupyter-trust/actions/workflows/ci.yml)
-
-<!---
-[![npm version](https://img.shields.io/npm/v/{PACKAGE})](https://www.npmjs.com/package/{PACKAGE})
--->
+[![npm version](https://img.shields.io/npm/v/jupyter-trust)](https://www.npmjs.com/package/jupyter-trust)
 
 A utility for managing Jupyter Notebook trust in Node.js.
 
@@ -363,7 +360,7 @@ Parse a JSON string. This parses all integer strings to `BigInt` to match the ba
 serialize(obj: unknown): Generator<string>
 ```
 
-Generator function used in generating the notebook's signature. The generator yields a the string representation of a single object key or (primitive) value at a time. The serialization of primitive values should exactly match the `str()` function in Python. This treats all `number`s like Python `float`s and `bigint` like `int`.
+Generator function used in generating the notebook's signature. The generator yields the string representation of a single object key or (primitive) value at a time. The serialization of primitive values should exactly match the `str()` function in Python. This treats all `number`s like Python `float`s and `bigint` like `int`.
 The function is intended to be called on objects which are parsed from JSON using [`parse()`](#parse).
 
 Object keys are sorted to ensure the output is stable.
